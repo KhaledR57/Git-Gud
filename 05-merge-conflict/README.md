@@ -9,8 +9,8 @@ You and a teammate both edited the same line in `todo.md` at the same time on di
 3. Edit the file so that **both** lines are kept. It should look like this:
    ```text
    TODO list:
-   Main Update
    Feature Update
+   Main Update
    ```
 4. Add and commit the resolution.
 
