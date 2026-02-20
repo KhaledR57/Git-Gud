@@ -53,6 +53,13 @@ verify_step() {
     fi
 }
 
+# Returns true if the current branch is master or main
+is_default_branch() {
+    local branch
+    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    [[ "$branch" == "master" || "$branch" == "main" ]]
+}
+
 # --- 00-commit ---
 verify_step "00-commit" \
     "git log -n 1 | grep -q 'Initial commit' && \
@@ -81,23 +88,23 @@ verify_step "03-branching" \
 # --- 04-merge ---
 verify_step "04-merge" \
     "git branch --merged | grep -q 'feature-login'" \
-    "Branch 'feature-login' has not been merged into main."
+    "Branch 'feature-login' has not been merged into master/main."
 
 # --- 05-merge-conflict ---
 verify_step "05-merge-conflict" \
     "! grep -qE '<<<<<<|======|>>>>>>' todo.txt && \
-     grep -zq 'Feature Update.*Main Update' todo.txt && \
+    grep -zq 'Feature Update.*Main Update' todo.txt && \
      [[ \$(git rev-parse HEAD^2) == \$(git rev-parse feature-conflict) ]] && \
-     [[ \$(git rev-parse --abbrev-ref HEAD) == 'main' ]]" \
-    "Ensure you merged feature-conflict INTO main, 'Feature Update' is BEFORE 'Main Update', and you created a merge commit."
+     is_default_branch" \
+    "Ensure you merged feature-conflict INTO master/main, 'Feature Update' is BEFORE 'Main Update', and you created a merge commit."
 
 # --- 06-stash ---
 verify_step "06-stash" \
-    "[[ \$(git rev-parse --abbrev-ref HEAD) == 'main' ]] && \
+    "is_default_branch && \
      [[ -z \$(git stash list) ]] && \
      grep -q 'BROKEN-WORK-IN-PROGRESS' config.json && \
      git log urgent-fix --oneline -n 1 | grep -q 'fix:'" \
-    "Check Failed: Ensure you are on 'main', you popped your stash, and you committed the fix on the urgent-fix branch."
+    "Check Failed: Ensure you are on 'master'/'main', you popped your stash, and you committed the fix on the urgent-fix branch."
 
 # --- 07-rebase ---
 verify_step "07-rebase" \
@@ -140,10 +147,10 @@ verify_step "08e-rebase-edit" \
 
 # --- 09-detached-head ---
 verify_step "09-detached-head" \
-    "[[ \$(git rev-parse --abbrev-ref HEAD) == 'main' ]] && \
-     git reflog | grep -q 'checkout: moving from .* to main' && \
+    "is_default_branch && \
+     git reflog | grep -qE 'checkout: moving from .* to (master|main)' && \
      git reflog | grep -q 'v2: logic'" \
-    "Check Failed: You didn't checkout the v2 commit or you forgot to return to the 'main' branch."
+    "Check Failed: You didn't checkout the v2 commit or you forgot to return to the 'master'/'main' branch."
 
 # --- 10-cherry-pick ---
 verify_step "10-cherry-pick" \
