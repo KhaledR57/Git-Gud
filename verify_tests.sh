@@ -62,7 +62,7 @@ is_default_branch() {
 
 # --- 00-commit ---
 verify_step "00-commit" \
-    "git log -n 1 | grep -q 'Initial commit' && \
+    "git log -n 1 | grep -q -i 'Initial commit' && \
      git ls-tree -r HEAD --name-only | grep -q 'hello.txt' && \
      git ls-tree -r HEAD --name-only | grep -q 'notes.txt'" \
     "Files not committed, working tree not clean, or commit message is incorrect."
